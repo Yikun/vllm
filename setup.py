@@ -242,6 +242,10 @@ def _is_hip() -> bool:
             or VLLM_TARGET_DEVICE == "rocm") and torch.version.hip is not None
 
 
+def _is_npu() -> bool:
+    return VLLM_TARGET_DEVICE == "npu"
+
+
 def _is_neuron() -> bool:
     torch_neuronx_installed = True
     try:
@@ -371,6 +375,8 @@ def get_vllm_version() -> str:
         version += "+cpu"
     elif _is_xpu():
         version += "+xpu"
+    elif _is_npu():
+        version += "+npu"
     else:
         raise RuntimeError("Unknown runtime environment")
 
@@ -412,6 +418,9 @@ def get_requirements() -> List[str]:
                 continue
             modified_requirements.append(req)
         requirements = modified_requirements
+    elif _is_npu():
+        # TODO: common ---> npu
+        requirements = _read_requirements("requirements-common.txt")
     elif _is_hip():
         requirements = _read_requirements("requirements-rocm.txt")
     elif _is_neuron():
@@ -427,7 +436,7 @@ def get_requirements() -> List[str]:
     else:
         raise ValueError(
             "Unsupported platform, please use CUDA, ROCm, Neuron, "
-            "OpenVINO, or CPU.")
+            "OpenVINO, Ascend NPU or CPU.")
     return requirements
 
 
